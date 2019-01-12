@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using Application.Areas.Identity.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Application.Controllers
 {
@@ -30,24 +34,32 @@ namespace Application.Controllers
         [HttpGet]
         public async Task<ActionResult<string>> Get([FromBody] GetParams prms)
         {
-            if (ModelState.IsValid)
+            var result = await _signInManager.PasswordSignInAsync(prms.login, prms.password, true, lockoutOnFailure: true);
+            if (result.Succeeded)
             {
-                //This doesn't count login failures towards account lockout
-                // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-                var result = await _signInManager.PasswordSignInAsync(prms.login, prms.password, true, lockoutOnFailure: true);
-                if (result.Succeeded)
+                var Claims = new []
                 {
-                    return "Token";
-                }
-            }
-            return new BadRequestResult();
-        }
+                    new Claim(JwtRegisteredClaimNames.Sub, prms.login),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                };
 
-        // GET: api/Login/5
-        [HttpGet("{id}", Name = "Get")]
-        public string Get(int id)
-        {
-            return "value";
+                var signedKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(ApplicationData.Key));
+
+                var token = new JwtSecurityToken(
+                    issuer: "http://oec.com",
+                    audience: "http://oec.com",
+                    expires: DateTime.UtcNow.AddHours(1),
+                    claims: Claims,
+                    signingCredentials: new SigningCredentials(signedKey, SecurityAlgorithms.HmacSha256)
+                    );
+                return Ok(new
+                {
+                    token = new JwtSecurityTokenHandler().WriteToken(token),
+                    expiration = token.ValidTo
+                });
+            }
+
+            return Unauthorized();
         }
 
         // POST: api/Login

@@ -41,6 +41,9 @@ namespace Application
             }
 
             app.UseHttpsRedirection();
+
+            app.UseAuthentication();
+
             app.UseMvc();
         }
     }
