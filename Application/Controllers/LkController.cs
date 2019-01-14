@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Application.Areas.Identity.Data;
@@ -23,58 +24,38 @@ namespace Application.Controllers
 
         // GET: api/Lk
         [HttpGet]
-        public IEnumerable<UserShort> Get()
+        public IActionResult Get()
         {
-            var users = new List<UserShort>();
-
-            for (int i = 0; i < _context.Users.Count(); i++) {
-
-                users.Add(new UserShort {
-                    FirstName = _context.Users.ToArray()[i].FirstName,
-                    MiddleName = _context.Users.ToArray()[i].MiddleName,
-                    LastName = _context.Users.ToArray()[i].LastName,
-                    Age = _context.Users.ToArray()[i].Age
-                });
-            }
-
-            return users.ToArray();
+            var result = from user in _context.Users
+                        select new
+                        {
+                            user.FirstName,
+                            user.MiddleName,
+                            user.LastName,
+                            user.Age
+                        };
+            return new OkObjectResult(result);
         }
 
         //GET: api/Lk/5
         [HttpGet("{id}", Name = "Get")]
-        public UserShort Get(int id)
+        public IActionResult Get(int id)
         {
-            return new UserShort
-            {
-                FirstName = _context.Users.ToArray()[id].FirstName,
-                MiddleName = _context.Users.ToArray()[id].MiddleName,
-                LastName = _context.Users.ToArray()[id].LastName,
-                Age = _context.Users.ToArray()[id].Age
-            };
-        }
+            var result = _context.Users.ElementAt(id);
 
-        // POST: api/Lk
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
-
+            return new OkObjectResult(result);
         }
 
         // PUT: api/Lk/5
         [HttpPut("{id}")]
         public void Put(int id, [FromBody] UserShort value)
         {
-            _context.Users.ToArray()[id].FirstName = value.FirstName;
-            _context.Users.ToArray()[id].MiddleName = value.FirstName;
-            _context.Users.ToArray()[id].LastName = value.LastName;
-            _context.Users.ToArray()[id].Age = value.Age;
+           var user = _context.Users.ToArray()[id];
+            user.FirstName = value.FirstName;
+            user.MiddleName = value.MiddleName;
+            user.LastName = value.LastName;
+            user.Age = value.Age;
             _context.SaveChanges();
-        }
-
-        // DELETE: api/ApiWithActions/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
         }
     }
 }

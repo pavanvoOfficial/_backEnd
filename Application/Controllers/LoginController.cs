@@ -28,8 +28,6 @@ namespace Application.Controllers
             _signInManager = signInManager;
         }
 
-
-
         // GET: api/Login
         [HttpGet]
         public async Task<ActionResult<string>> Get([FromBody] GetParams prms)
@@ -60,24 +58,6 @@ namespace Application.Controllers
             }
 
             return Unauthorized();
-        }
-
-        // POST: api/Login
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
-        }
-
-        // PUT: api/Login/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE: api/ApiWithActions/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
         }
     }
 }

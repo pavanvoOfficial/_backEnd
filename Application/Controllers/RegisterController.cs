@@ -27,46 +27,25 @@ namespace Application.Controllers
         [HttpGet]
         public async Task<ActionResult<string>> Get([FromBody] GetParams prms)
         {
-            if (ModelState.IsValid)
+            var user = new User { UserName = prms.login, Email = prms.login };
+            var result = await _userManager.CreateAsync(user, prms.password);
+            if (result.Succeeded)
             {
-                var user = new User { UserName = prms.login, Email = prms.login };
-                var result = await _userManager.CreateAsync(user, prms.password);
-                if (result.Succeeded)
-                {
-                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    var callbackUrl = Url.Page(
-                        "/Account/ConfirmEmail",
-                        pageHandler: null,
-                        values: new { userId = user.Id, code = code },
-                        protocol: Request.Scheme);
+                var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                var callbackUrl = Url.Page(
+                    "/Account/ConfirmEmail",
+                    pageHandler: null,
+                    values: new { userId = user.Id, code = code },
+                    protocol: Request.Scheme);
 
-                    return new OkResult();
-                }
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
-                }
+                return new OkResult();
+            }
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
             }
             // If we got this far, something failed, redisplay form
             return new BadRequestResult();
-        }
-        
-        // POST api/values
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
-        }
-
-        // PUT api/values/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE api/values/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
         }
     }
 }
